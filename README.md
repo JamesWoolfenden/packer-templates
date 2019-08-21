@@ -1,141 +1,111 @@
-# Vagrant Boxes
+# packer-templates
 
-Vagrant boxes built with these packer templates can be found at: https://app.vagrantup.com/p0bailey/
+Table of content.
+
+
+<!-- MDTOC maxdepth:6 firsth1:1 numbering:0 flatten:0 bullets:1 updateOnSave:1 -->
+
+- [packer-templates](#packer-templates)   
+- [Packer Templates](#packer-templates)   
+   - [Installing / Getting started](#installing-getting-started)   
+      - [Prerequisites](#prerequisites)   
+   - [Templates usage](#templates-usage)   
+   - [Vagrantfile](#vagrantfile)   
+   - [OS images.](#os-images)   
+   - [Changelog](#changelog)   
+   - [Contributing](#contributing)   
+   - [Authors](#authors)   
+   - [License](#license)   
+
+<!-- /MDTOC -->
+
+
+
+Vagrant boxes built with these packer templates are available at: https://app.vagrantup.com/p0bailey/
 
 
 # Packer Templates
 
-Ubuntu, Debian and  Centos Packer templates with custom  scripts to bake EC2 instances and Vagrant boxes.
+Ubuntu, Debian and  Centos Packer templates with custom  scripts to bake Vagrant boxes and upload them into Vagrant cloud.
 
 Supported builds:
 
-ubuntu-14.04
 
-ubuntu-16.04
-
-ubuntu-18.04
-
-k8 - Docker and Kubernetes
-
-centos-6.8
-
-centos-6.9
-
-centos-7.3
-
-centos-7.4
-
-debian-8
-
-debian-9
+|  Distribution | Debian  | Ubuntu  | CentOS  |Misc  |
+|---|---|---|---|---|
+|   |   9|  18.04  |7.6   |k8 (Kubernetes + Docker)   |
 
 
 
-## Packer Installation
+## Installing / Getting started
 
-To install packer use this Ansible role.
+### Prerequisites
 
-https://github.com/p0bailey/ansible-packer
+* Terraform - www.terraform.io
 
-Or install packer manually as described below.
+* Packer - www.packer.io
 
- https://www.packer.io/intro/getting-started/setup.html
+* Vagrant - www.vagrantup.com
 
-## Vagrant setup.
-
-Installing Vagrant: https://www.vagrantup.com/docs/installation/
+* Virtualbox - https://www.virtualbox.org/
 
 ## Templates usage
 
-Custom provisioning.
+`git clone https://github.com/p0bailey/packer-templates.git`
 
-Add any custom feature or software package into "scripts/provision.sh"
+Workflow
 
-Run.
+`make virtualbox`
 
+`make vagrant_up`
+
+`make vagrant_upload`
+
+
+Makefile Menu
 ```
-make virtualbox
-
-or
-
-make aws
-
-```
-
-Testing on virtualbox.
-
-For convenience each build directory contains a custom Vagrantfile,
-to test your newly created box please run.
-
-Start Vagrant box.
-
-```
-make vagrant_up
+virtualbox                     build virtualbox image
+vagrant_up                     starts the vagrant box
+vagrant_upload                 Publish and release a new Vagrant Box on Vagrant Cloud
+vagrant_clean                  stops and removes vagrant box
+vagrant_stop_all               stop all Vagrant machines
+vagrant_status                 outputs status Vagrant environments for this user
 ```
 
-Destroy and remove Vagrant box.
+## Vagrantfile
+
+Example Vagrantfile to consume Vagrant Boxes built from this repository.
+```
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+IP_ADDR = "192.168.56.55"
+HOSTNAME = "server-vagrant"
+BOX_NAME = "p0bailey/box_name"
+CPUS = "2"
+MEMORY = "1024"
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+config.vm.define "box" do |box|
+
+    box.vm.box = "BOX_NAME"
+    box.vm.network :private_network, ip: "IP_ADDR"
+    box.vm.hostname = "HOSTNAME"
+    box.ssh.insert_key = false
+
+    box.vm.provider "virtualbox" do |v|
+        v.customize [ "modifyvm", :id, "--cpus", "CPUS" ]
+        v.customize [ "modifyvm", :id, "--memory", "MEMORY" ]
+    end
+
+end
+ end
+
 
 ```
-vagrant_clean
-```
-
-## Provisioning.
-
-To add additional packages please locate scripts/provision.sh and add your code there.
-
-Installed packages:
-
-- ansible 2.2.1.0
-
-
-## AWS credentials and variables.
-
-Place AWS vars into ~.bashrc
-
-```
-export AWS_ACCESS_KEY_ID=xxxxxxxxxxxxxx
-export AWS_SECRET_ACCESS_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
-
-Packer AWS variables examples.
-
-type = The amazon-ebs Packer builder is able to create Amazon AMIs backed by
-EBS volumes for use in EC2.
-
-access_key = (string) - The access key used to communicate with AWS.
-
-secret_key = (string) - The secret key used to communicate with AWS.
-
-region = (string) - The name of the region, such as "us-east-1", in which
-to launch the EC2 instance to create the AMI.
-
-source_ami = (string) - The initial AMI used as a base for the newly created
-machine.
-
-instance_type = (string) - The EC2 instance type to use while building the AMI,
-such as "m1.small".
-
-ssh_username = (string) - The username to use in order to communicate over SSH
-to the running machine.
-
-vpc_id = (string) - If launching into a VPC subnet, Packer needs the VPC ID in
-order to create a temporary security group within the VPC.
-
-subnet_id = (string) - If using VPC, the ID of the subnet, such as "subnet-12345def",
-where Packer will launch the EC2 instance. This field is required if you are using
-an non-default VPC.
-
-security_group_id = string) - The ID (not the name) of the security group to assign
-to the instance. By default this is not set and Packer will automatically create a
-new temporary security group to allow SSH access. Note that if this is specified,
-you must be sure the security group allows access to the ssh_port given below.
-
-ami_name =  The name of the resulting AMI that will appear when managing AMIs in
-the AWS console or via APIs. This must be unique. To help make this unique, use
-a function like timestamp.
-
-
-https://www.packer.io/docs/builders/amazon-instance.html
 
 ## OS images.
 
@@ -145,6 +115,8 @@ Ubuntu - http://releases.ubuntu.com/
 
 Debian - http://cdimage.debian.org/debian-cd
 
+
+## Changelog
 
 ## Contributing
 

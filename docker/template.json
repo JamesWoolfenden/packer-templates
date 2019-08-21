@@ -61,7 +61,7 @@
       "type": "vagrant",
       "override": {
         "virtualbox": {
-          "output": "k8-stable-x64-virtualbox.box"
+          "output": "docker-stable-x64-virtualbox.box"
         }
       }
     }
